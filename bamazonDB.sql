@@ -1,6 +1,6 @@
-CREATE DATABASE bamazon;
+CREATE DATABASE bamazonDB;
 
-USE bamazon;
+USE bamazonDB;
 
 CREATE TABLE IF NOT EXISTS products (
     item_id INT PRIMARY KEY AUTO_INCREMENT, 
