@@ -68,7 +68,9 @@ function chooseItem(){
                     console.log('Insufficient quantity');
                     connection.end();
                 } else {
-                    console.log('In stock!');
+                    var updatedQty = res[0].stock_quantity - answer.qty;
+                    connection.query('UPDATE products SET stock_quantity=' + updatedQty + ' WHERE item_id=' + answer.itemID);
+                    console.log('Order placed!');
                     connection.end();
                 };
             });
