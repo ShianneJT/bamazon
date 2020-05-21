@@ -3,8 +3,8 @@ var mysql = require('mysql');
 var inquirer = require('inquirer');
 var Table = require('cli-table');
 var itemTable = new Table({
-    head: ['Item ID', 'Product', 'Department', 'Price'],
-    colWidths: [10, 15, 15, 10]
+    head: ['Item ID', 'Product', 'Department', 'Price', 'Quantity'],
+    colWidths: [10, 15, 15, 10, 10]
 });
 
 var connection = mysql.createConnection({
@@ -25,7 +25,7 @@ function logo() {
         if (err) {
             console.log(err);
         } else {
-            console.log(data)
+            console.log(data);
             displayItems();
         };
     });
@@ -36,7 +36,7 @@ function displayItems(){
         if (err) throw err;
 
         for (var i = 0; i < res.length; i++) {
-            itemTable.push([res[i].item_id, res[i].product_name, res[i].department_name, res[i].price]);
+            itemTable.push([res[i].item_id, res[i].product_name, res[i].department_name, res[i].price, res[i].stock_quantity]);
         }
         console.log(itemTable.toString());
         chooseItem();
@@ -52,12 +52,28 @@ function chooseItem(){
             {
                 name: 'itemID',
                 type: 'input',
-                message: 'Please type the ID for the item you\'d like to purchase.'
+                message: 'Please type the ID for the item you\'d like to purchase.',
+                validate: function (value) {
+                    if (isNaN(value) === false && (value > 0 && value <= 10)) {
+                        return true;
+                    } else {
+                        console.log('\n\nPlease enter a number between 1 and 10\n');
+                        return false;
+                    }
+                }
             },
             {
                 name: 'qty',
                 type: 'input',
-                message: 'How many would you like?'
+                message: 'How many would you like?',
+                validate: function (value) {
+                    if (isNaN(value)) {
+                        console.log('Please enter a numerical value.');
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
             }
         ]).then(function(answer){
             connection.query('SELECT * FROM products WHERE ?',
@@ -69,13 +85,14 @@ function chooseItem(){
                     connection.end();
                 } else {
                     var updatedQty = res[0].stock_quantity - answer.qty;
+                    console.log('price: ' + res[0].price);
+                    var calcTotal = res[0].price * answer.qty;
+                    calcTotal = calcTotal.toFixed(2);
                     connection.query('UPDATE products SET stock_quantity=' + updatedQty + ' WHERE item_id=' + answer.itemID);
-                    console.log('Order placed!');
+                    console.log('Order placed! Your total today is: $' + calcTotal + '.');
                     connection.end();
                 };
             });
         });
     });
 };
-
-// show customer total cost of their purchase
